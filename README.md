@@ -1,3 +1,3 @@
-Server built for database access using NodeJS / express.js / express/session and mongoDB
+Server for "prakticum_angular" using NodeJS / express.js / express/session and mongoDB
 
-Login system still work in progress.
+Login still work in progress.
