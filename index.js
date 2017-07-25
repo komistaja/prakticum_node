@@ -10,8 +10,8 @@ const ticketModel = require('./models/ticketmodel');
 const userModel = require('./models/usermodel');
 const counterModel = require('./models/countermodel');
 
-const auth = require('./auth');
-const query = require('./query');
+const auth = require('./modules/auth');
+const query = require('./modules/query');
 
 
 const testEnv = true;
@@ -55,32 +55,25 @@ app.use(session({
 // Login 
 app.post('/login', function(req, res) {
  
-  query.userQuery(req.body.username).then(function(value) {
+  query.userQuery(req.body.username).then(function(userRes) {
       console.log(req.body.username + ' ' + req.body.password);
-      console.log(value);
-      if(!value[0]) {
+      if(!userRes[0]) {
         console.log('user not found');
         res.type('application/json');
         return res.status(401).json('Unknown user/wrong password');
-      } else if (req.body.username === value[0].username && req.body.password != value[0].password) {
+      } else if (req.body.username === userRes[0].username && req.body.password != userRes[0].password) {
         return res.status(401).json('Unknown user/wrong password');
       } else {
-        console.log('Login: ' + req.body.username);
-        console.log('Databasematch: ' + value[0].username)
-        console.log(req.session);
-        req.session.user = value[0].username;
-        console.log('Sessionuser: ' + req.session.user)
-        
+        console.log('Login: ' + userRes[0].username);
+        req.session.user = userRes[0].username;        
         if(req.session.user === 'sales') {
           req.session.admin = true;
-          console.log(req.session.admin);
           return res.status(200).send({ "name": "sales" });
         }
         if(req.session.user === 'datanom') {
-          console.log(req.session.admin)
           req.session.datanom = true;
-          return res.redirect(303, '/datanom');
-        } else if(req.body.username != value[0].username || req.body.password != value[0].password) {
+          return res.status(200).json(req.session.user);
+        } else if(req.body.username != userRes[0].username || req.body.password != userRes[0].password) {
           res.status(401).send('check username/password');
         }
       }
@@ -100,19 +93,9 @@ app.get('/logout', function(req, res) {
   res.redirect('/');
 });
 
-//Loginpage
-app.get('/loginpage', function(req, res) {
-  res.sendFile(path.join(__dirname + '/public/login.html'));
-});
-
 //Admin endpoint
 app.get('/sales', auth.adminAuth, function(req, res) {
   res.sendFile(path.join(__dirname + '/public/main.html'));
-});
-
-//Datanom endpoint
-app.get('/datanom', auth.datanomAuth, function(req, res) {
-  res.sendFile(path.join(__dirname + '/public/worker.html'));
 });
 
 //Add data to database
@@ -148,49 +131,16 @@ app.get('/admin', auth.adminAuth, (req, res) => {
     dbQuery = { $or: [{ email: req.query.email }, {id: req.query.id}]};
   }
 
-  console.log('Search: email: ' + req.query.email + ', id: ' + req.query.id);
   db.collection('tickets').find( dbQuery ).toArray(function (err, tickets) {
     res.send(tickets);
   });
 });
 
-//empty database
-app.get('/delete', auth.adminAuth, (req, res) => {
+/* app.get('/delete', auth.adminAuth, (req, res) => {
   db.collection('tickets').remove({});
     res.send('DB deleted');
     console.log('Database erased');
-});
-
-
-//Worker search
-app.get('/workersearch', auth.datanomAuth, (req, res) => {
-  var email = req.query.email;
-  var id = req.query.id;
-  
-  console.log('Search: ' + email + ' ' + id);
-
-  db.collection('tickets').find({ $or: [ { email: email }, { id: id } ] }).toArray(function (err, tickets) { 
-    var restickets = [];
-    for(i = 0; i < tickets.length; i++) {
-      restickets[i] = { id:tickets[i].id, email:tickets[i].email, service:tickets[i].service, comments: tickets[i].comments, status: tickets[i].status };
-    }
-    res.send(restickets);
-  });
-});
-
-//worker update
-app.post('/workerupdt', auth.datanomAuth, (req,res) => {
-  var data = req.body;
-  console.log(req.body);
-  
-  db.collection('tickets').findOneAndUpdate(
-      { id: req.body.id },
-      { comment: req.body.comment },
-      { status: req.body.status },
-      { returnNewDocument: true, upsert: true }
-    ).catch(function(reason) { console.log(reason) });
-  res.send('Report');
-});
+}); */
 
 // update
 app.put('/admin', auth.adminAuth, (req, res) => {

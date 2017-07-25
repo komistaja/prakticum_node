@@ -8,8 +8,6 @@ app.use(session({
   saveUninitialized: true
 }));
 
-
-//Auth middleware
 var adminAuth = function(req, res, next) {
   console.log(req.session.admin)
   if(!req.session.admin) {
@@ -19,13 +17,4 @@ var adminAuth = function(req, res, next) {
   }
 };
 
-var datanomAuth = function(req, res, next) {
-  if(req.session.user === 'datanom') {
-    return next();
-  } else {
-    return res.status(401).send('please login');
-  }
-};
-
 exports.adminAuth = adminAuth;
-exports.datanomAuth = datanomAuth;

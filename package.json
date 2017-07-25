@@ -1,7 +1,7 @@
 {
   "name": "prakticumdataservice",
   "version": "1.0.0",
-  "description": "ticket system",
+  "description": "db-server for prakticum dataservices",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
