@@ -10,7 +10,7 @@ app.use(session({
 
 var adminAuth = function(req, res, next) {
   console.log(req.session.admin)
-  if(!req.session.admin) {
+  if(req.session.admin) {
     return next();
   } else {
     return res.status(401).json('please login');
